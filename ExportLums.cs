@@ -318,10 +318,6 @@ namespace EpicLumExporter
             }
 
             List<LumInfoRect> rectList = new List<LumInfoRect>();
-            DrawRectangle(
-                            new Point2d(0, 0),
-                            new Point2d(1250,1250)
-                            );
 
             foreach (var item in LumInfoBlocks)
             {
