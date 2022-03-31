@@ -192,6 +192,45 @@ namespace EpicLumExporter
                             continue;
                         }
 
+                        string LumModelName = "";
+                        string LumManufacturer = "";
+
+                        if (blckRef.Layer == "EL_Gaismeklis")
+                        {
+                            var Attrs = blckRef.AttributeCollection;
+                            foreach (ObjectId attId in Attrs)
+                            {
+                                AttributeReference attRef = (AttributeReference)trans.GetObject(attId, OpenMode.ForRead);
+                                if (attRef.Tag == "NAME")
+                                {
+                                    LumModelName = attRef.TextString;
+                                }
+                            }
+
+                            LumDataItem DELBLock = new LumDataItem()
+                            {
+                                luminaireModelName = LumModelName,
+                                AcadBlckItem = blckRef
+                            };
+                            LumData.Add(DELBLock);
+
+                            LumDataItem2 DELBLock2 = new LumDataItem2()
+                            {
+                                LumModelName = LumModelName,
+                                LumManufacturer = LumManufacturer,
+                                Location = new Vector3()
+                                {
+                                    X = (float)blckRef.Position.X,
+                                    Y = (float)blckRef.Position.Y,
+                                    Z = (float)blckRef.Position.Z
+                                },
+                                Rotation = blckRef.Rotation,
+                            };
+                            LumData2.Add(DELBLock2);
+
+                        }
+
+
                         // Skipping the loop for any other blocks that do not meet the requirements
                         if (!blckRef.Layer.StartsWith("DLX") || !blckRef.Layer.Contains("LUM")) { continue; }
 
@@ -199,9 +238,6 @@ namespace EpicLumExporter
                             // Getting index and model name
                         string lumindex = blckRef.Layer.PadRight(6).Split(' ')[1].Trim();
                         var lumTableDataItem = LumUniqueData.FirstOrDefault(L => L.lumIndex == lumindex);
-
-                        string LumModelName;
-                        string LumManufacturer;
 
                         if (lumTableDataItem == null)
                         {
@@ -291,6 +327,23 @@ namespace EpicLumExporter
             string quantityErrorInfo = "";
 
             var gr = LumData.GroupBy(x => x.AcadBlckItem.Layer).ToList();
+
+            var gr2 = LumData.GroupBy(x => x.luminaireModelName).ToList();
+            if (LumUniqueData.Count == 0)
+            {
+                foreach (var item in gr2)
+                {
+                    LumUniqueData.Add(new UniqueLumDataItem()
+                    {
+                        luminaireModelName = item.Key,
+                        lumIndex = "",
+                        quantity = "",
+                        itemNumber = "",
+                        manufacturer = ""
+                    });
+                }
+            }
+
             foreach (var G in gr)
             {
                 Debug.Print(string.Format("Type {0}:  {1}   [{2}]", G.Key, G.Count(), G.ToList()[0].luminaireModelName));
